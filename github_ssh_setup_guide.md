@@ -2,40 +2,93 @@
 
 ## 第一部分：上传代码到自己的仓库
 
-### 1. GitHub 准备
+
+### 1. 本地终端操作
+
+# 检查 SSH key（看是否有 SSHkey  文件）
+ls -al ~/.ssh
+#初次使用需要生成SSH key（一台电脑有一个SSH key就够了）
+ssh-keygen -t ed25519 -C "your_email@example.com")
+# 创建一对钥匙（私钥和公钥），用于安全连接 GitHub。私钥和公钥是一样的吗？不一样！它们是一对匹配的钥匙，由加密算法生成。
+#私钥：你的秘密钥匙，只能你用。用来解密或签名。保存在你电脑上，证明你的身份（别分享）。
+#公钥：公开的钥匙，给别人用。用来加密或验证签名。分享给 GitHub，让它知道这是你的钥匙
+# 为什么 ed25519：现代加密算法，安全且高效。
+
+### 2. GitHub 准备
+
 1. 登录 [GitHub](https://github.com)
 2. 点击 "+" → "New repository"
 3. 输入仓库名（如 `ai-pension-guide`），选择私有，点击 "Create repository"
-4. 进入 Settings → SSH and GPG keys → "New SSH key"
-5. 粘贴公钥：
+4. 进入 Settings → Security → "Deploy key"-
+5. Title：随便填，如 "MacBook New Key"
+6. key:粘贴终端里面的公钥：
    ```
-   ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPkHbhclcHR0dgR/RV9NiC6ub/QCoyrpFRROrjkcF4Ae your_email@example.com zhuoranli608@gmail.com
+   ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGe814Gm0Ot7WOhiuiLWOIHXEgSnpbFiLK7iwlBA34eN zhuoranli608@gmail.com
    ```
-6. 点击 "Add SSH key"
-7. 返回仓库，点击 "Code" → SSH，复制地址如 `git@github.com:username/repo.git`
+7. access：勾选 "Allow write access“是为了推送代码，勾选 "Allow read access"是为了拉取代码。
+8. 返回仓库主页，点击 "Code" → SSH，复制地址如 `git@github.com:Li-Zhuo-Ran/ai-pension-guide.git`这个是你的仓库地址。
+   组成SSH地址和HTTPS地址的区别：SSH是基于密钥的认证方式,直接和仓库连接的git方式，HTTPS用https方式，需要输入用户名和密码。
 
-### 2. 本地终端操作
-```bash
-# 检查 SSH key
-ls -al ~/.ssh
+### 3. 终端操作
 
 # 启动 SSH agent
-eval "$(ssh-agent -s)"
-ssh-add ~/.ssh/id_ed25519
+eval "$(ssh-agent -s)" #这个是用来启动SSH agent，它会帮你管理你的私钥。
+
+#创建 SSH key 后，把公钥（.pub）分享给其他程序/服务（如 GitHub），它们用公钥验证你的身份。私钥留在你电脑上，agent 自动用它签名连接，无需密码。
+#对接流程：生成 key → 添加公钥到目标服务 → agent 加载私钥 → 自动认证（把公钥和私钥pair配对）
+#意义：安全且方便，一次设置，长期使用。
+
+# 添加私钥到 agent
+ssh-add ~/.ssh/id_ed25519 #这个是用来添加你的私钥到SSH agent，这样你就可以使用它来连接GitHub了。
 
 # 测试连接
-ssh -T git@github.com
+ssh -T git@github.com 
+#这个是用来测试你的SSH连接是否成功。如果看到 "Hi username! You've successfully authenticated, but GitHub does not provide shell access."，那就说明成功了！ - T是test的意思，用来测试SSH连接是否成功
 
-# 初始化仓库
-cd /path/to/project
-git init
-git add .
-git commit -m "Initial commit"
+#shell access是SSH特有的，表示你可以登录到服务器,可以执行命令，但GitHub不提供shell访问。是因为GitHub的SSH服务只提供Git操作，不开放Shell访问。git和shell区别是git是版本控制系统，用于代码管理；shell是一个命令行解释器，用于执行各种系统操作。不提供shell访问是为了安全考虑，防止恶意用户通过SSH获取服务器权限。
+
+可以用ssh连接的软件和网站常：：SSH 是安全连接的标准工具，广泛用于开发和运维(Secure Shell的缩写），主要用于远程登录和文件传输。
+代码托管：GitLab、Bitbucket（类似 GitHub，用 SSH 克隆/推送）
+服务器管理：AWS EC2、DigitalOcean、Linode（SSH 登录远程服务器部署代码）。
+文件传输：SFTP/SCP（安全文件传输，基于 SSH）。
+其他工具：Jenkins（CI/CD 工具，用 SSH 连接服务器）、Docker（有时用 SSH 推送镜像）、VPS 提供商（如 Vultr）。
+常见场景：开发环境连接生产服务器、自动化脚本部署、远程代码编辑（如 VS Code Remote SSH）。
+
+### 4. 初始化仓库
+
+cd /path/to/project  #进入项目cd /Users/lizhuoran/Desktop/ai-pension-guide
+git init  #初始化仓库 把整个文件夹变成 Git 仓库
+git add . #添加当前文件夹所有文件（包括子文件夹）。意义：准备提交的文件先放进“暂存区”，像购物车。
+git commit -m "Initial commit" #提交暂存区文件到仓库，并写上说明。-m：添加提交信息，描述更改。
+
 
 # 关联远程
 git remote add origin git@github.com:username/repo.git
+#连接本地仓库到 GitHub 上的仓库 git remote add origin git@github.com:Li-Zhuo-Ran/ai-pension-guide.git
+#origin：远程仓库的别名（默认叫法）。
+#git@github.com:Li-Zhuo-Ran/ai-pension-guide.git：远程仓库的地址，之前第二部在GitHub上找到的SSH地址。
+
+# 推送代码
 git push -u origin main
+#推送本地仓库到 GitHub 上的 main 分支。
+-u：设置上游分支，下次直接 git push 就够了。这个是指定推送的目标分支和本地分支的对应关系，下次直接 git push 就知道推到哪里了。
+#origin main：推送到远程的 main 分支。意义：代码从本地同步到云端，同事可以下载协作。
 ```
+# 整个流程总结：钥匙生成 → 钥匙激活 → 测试门锁 → 进入房间 → 初始化仓库 → 打包物品 → 保存快照 → 连接云端 → 上传云端。成功后，你的代码就在 GitHub 上了！
+
+ ❤️❤️新修改文件上传到GitHub
+# 进入项目文件夹
+cd /Users/lizhuoran/Desktop/ai-pension-guide
+
+# 添加修改的文件
+git add github_ssh_setup_guide.md
+
+# 提交更改（写清楚修改内容）
+git commit -m "Update GitHub setup guide with detailed explanations"
+
+# 推送更新
+git push origin main
+
 
 ## 第二部分：修改别人的代码
 
